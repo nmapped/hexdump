@@ -1,35 +1,35 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <ctype.h>
+
+void print_hex_ln(unsigned char* buffer, size_t* bytes_read, size_t* offset) {
+	printf("%08zX\t", *offset);
+	for (size_t i = 0; i < *bytes_read; i++) {
+		printf("%02X ", buffer[i]);
+		if (i % 16 == 15 || i == *bytes_read - 1) {
+			printf("\t");
+			for (size_t j = i - (i % 16); j <= i; j++) {
+				printf("%c", isprint(buffer[j]) ? buffer[j] : '.');
+			}
+			printf("\n");
+		}
+	}
+}
 
 int main(int argc, char** argv) {
+	if (argc < 2) printf("usage: %s <filename>\n", argv[0]);
 
-	if (argc < 2) {
-		printf("provide a file to read: %s <file>", argv[0]);
-		return 1;
-	}
+	FILE* fp = fopen(argv[1], "rb");
 
-	FILE* fp = fopen(argv[1], "rb");	
-	if (fp == NULL) {
-		printf("error opening file\n");
-		return 1;
-	}
+	if (fp == NULL) printf("there was an error opening the file\n"); 
 
 	unsigned char buffer[16];
 	size_t bytes_read;
 	size_t offset = 0;
 
-	/* fread(buffer, element size, no of elements, stream)
-	 -> moves file pointer forward automatically
-	 */
 	while ((bytes_read = fread(buffer, 1, sizeof(buffer), fp)) > 0) {
-		printf("%08zX\t", offset);
-		for (size_t i = 0; i < bytes_read; i++) {
-			printf("%02X ", buffer[i]);
-		}
-		printf("\n");
+		print_hex_ln(buffer, &bytes_read, &offset);
 		offset += bytes_read;
 	}
 
-	fclose(fp);
 	return 0;
 }
